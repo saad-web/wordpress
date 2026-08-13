@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/saad-web/wordpress.git
+    repoURL: https://github.com/saadmehmood-byte/wordpress.git
     targetRevision: main
     path: manifests
   destination:
