@@ -36,17 +36,47 @@ jobs:
             echo "- $file"
           done
 
-  notify:
-    name: Deployment Info
-    runs-on: ubuntu-latest
+  deploy:
+    name: Deploy to Cluster
+    runs-on: self-hosted
     needs: validate
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: ArgoCD Sync Info
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync ArgoCD Application
         run: |
-          echo "=== Deployment Status ==="
-          echo "Branch: main"
-          echo "Commit: ${{ github.sha }}"
+          echo "=== Syncing ArgoCD Application ==="
+          export KUBECONFIG=/home/saad/kubernetes/config
+
+          # Force ArgoCD to refresh and sync
+          kubectl patch application wordpress -n argocd --type merge \
+            -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}' || true
+
+          sleep 10
+
+          # Apply manifests directly to ensure immediate update
+          kubectl apply -f manifests/
+
+          echo "=== Deployment triggered ==="
+
+      - name: Rollout Restart
+        run: |
+          export KUBECONFIG=/home/saad/kubernetes/config
+          echo "Restarting deployments..."
+          kubectl rollout restart deployment/wordpress -n wordpress || true
+          kubectl rollout restart deployment/mysql -n wordpress || true
+
+          echo "Waiting for rollout..."
+          kubectl rollout status deployment/wordpress -n wordpress --timeout=120s || true
+          kubectl rollout status deployment/mysql -n wordpress --timeout=120s || true
+
+      - name: Show Status
+        run: |
+          export KUBECONFIG=/home/saad/kubernetes/config
+          echo "=== Pod Status ==="
+          kubectl get pods -n wordpress
           echo ""
-          echo "ArgoCD will automatically sync these changes."
-          echo "Monitor deployment in ArgoCD UI."
+          echo "=== Events ==="
+          kubectl get events -n wordpress --sort-by='.lastTimestamp' | tail -10
