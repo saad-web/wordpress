@@ -26,17 +26,17 @@ spec:
             - name: WORDPRESS_DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrt
+                  name: mysql-secret
                   key: MYSQL_DATABASE
             - name: WORDPRESS_DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrt
+                  name: mysql-secret
                   key: MYSQL_USER
             - name: WORDPRESS_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrt
+                  name: mysql-secret
                   key: MYSQL_PASSWORD
           resources:
             requests:
