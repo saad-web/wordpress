@@ -38,9 +38,6 @@ spec:
                 secretKeyRef:
                   name: mysql-secret
                   key: MYSQL_PASSWORD
-          volumeMounts:
-            - name: wordpress-storage
-              mountPath: /var/www/html
           resources:
             requests:
               memory: "128Mi"
@@ -48,7 +45,3 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "250m"
-      volumes:
-        - name: wordpress-storage
-          persistentVolumeClaim:
-            claimName: wordpress-pvc
